@@ -12,7 +12,7 @@ import com.pulseai.leaderboard.ui.viewmodel.LeaderboardViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -31,17 +31,18 @@ class LeaderboardViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
-    // Fake DAO
+    // Fake DAO with reactive StateFlow matching Room's behavior
     private val fakeDao = object : ModelDao {
-        private val list = mutableListOf<ModelEntity>()
-        override fun getAllModels(): Flow<List<ModelEntity>> = flowOf(list)
-        override suspend fun getModelById(id: String): ModelEntity? = list.find { it.id == id }
+        private val _modelsFlow = MutableStateFlow<List<ModelEntity>>(emptyList())
+        private var lastCache: Long = 0L
+        override fun getAllModels(): Flow<List<ModelEntity>> = _modelsFlow
+        override suspend fun getModelById(id: String): ModelEntity? = _modelsFlow.value.find { it.id == id }
         override suspend fun insertModels(models: List<ModelEntity>) {
-            list.clear()
-            list.addAll(models)
+            _modelsFlow.value = models
+            lastCache = System.currentTimeMillis()
         }
-        override suspend fun clearAll() { list.clear() }
-        override suspend fun getLastCacheTime(): Long = System.currentTimeMillis()
+        override suspend fun clearAll() { _modelsFlow.value = emptyList(); lastCache = 0L }
+        override suspend fun getLastCacheTime(): Long = lastCache
     }
 
     // Fake API service
