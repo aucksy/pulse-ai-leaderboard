@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CompareArrows
+import androidx.compose.material.icons.automirrored.filled.CompareArrows
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -70,8 +70,8 @@ class MainActivity : ComponentActivity() {
 
 enum class NavigationTab(val title: String, val icon: ImageVector) {
     LEADERBOARD("Leaderboard", Icons.Default.Leaderboard),
-    COMPARE("Compare", Icons.Default.CompareArrows),
-    FRONTIER("Frontier", Icons.Default.ShowChart)
+    COMPARE("Compare", Icons.AutoMirrored.Filled.CompareArrows),
+    FRONTIER("Frontier", Icons.AutoMirrored.Filled.ShowChart)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -2,7 +2,7 @@ package com.pulseai.leaderboard
 
 import com.pulseai.leaderboard.data.remote.NetworkModule
 import com.pulseai.leaderboard.data.remote.OpenRouterResponse
-import kotlinx.serialization.json.decodeFromString
+import kotlinx.serialization.decodeFromString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
