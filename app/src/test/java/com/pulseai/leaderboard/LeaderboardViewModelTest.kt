@@ -76,7 +76,12 @@ class LeaderboardViewModelTest {
         // Test search query
         viewModel.setSearchQuery("claude")
         val searchedState = viewModel.uiState.value
-        assertTrue(searchedState.filteredModels.all { it.name.contains("Claude", ignoreCase = true) || it.id.contains("claude", ignoreCase = true) })
+        assertTrue(searchedState.filteredModels.isNotEmpty())
+        assertTrue(searchedState.filteredModels.all {
+            it.name.contains("Claude", ignoreCase = true) ||
+            it.id.contains("claude", ignoreCase = true) ||
+            it.description.contains("claude", ignoreCase = true)
+        })
 
         // Clear search
         viewModel.setSearchQuery("")

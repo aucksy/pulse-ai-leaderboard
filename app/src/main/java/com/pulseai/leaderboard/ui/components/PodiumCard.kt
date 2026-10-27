@@ -156,7 +156,7 @@ private fun PodiumCard(
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Rank Badge with Crown/Star
@@ -192,7 +192,7 @@ private fun PodiumCard(
 
             // Model name & Provider
             Column(
-                horizontalAlignment = Alignment.CenterVertically,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(

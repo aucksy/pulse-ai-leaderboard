@@ -85,7 +85,6 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit.kotlinx.serialization)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

@@ -1,11 +1,28 @@
 package com.pulseai.leaderboard.data.remote
 
-import com.jakewharton.retrofit2.converter.kotlinxserialization.asConverterFactory
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
+import kotlinx.serialization.serializer
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
+import retrofit2.Converter
 import retrofit2.Retrofit
+import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
+
+class KotlinxJsonConverterFactory(private val json: Json) : Converter.Factory() {
+    override fun responseBodyConverter(
+        type: Type,
+        annotations: Array<out Annotation>,
+        retrofit: Retrofit
+    ): Converter<ResponseBody, *> {
+        val serializer = json.serializersModule.serializer(type)
+        return Converter<ResponseBody, Any> { body ->
+            body.use {
+                json.decodeFromString(serializer, it.string())
+            }
+        }
+    }
+}
 
 object NetworkModule {
     private const val BASE_URL = "https://openrouter.ai/api/v1/"
@@ -32,7 +49,7 @@ object NetworkModule {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(KotlinxJsonConverterFactory(json))
             .build()
             .create(OpenRouterApiService::class.java)
     }

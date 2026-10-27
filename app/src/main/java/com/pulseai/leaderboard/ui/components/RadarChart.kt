@@ -4,6 +4,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -82,7 +83,7 @@ fun RadarSpiderChart(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
@@ -193,7 +194,7 @@ fun RadarSpiderChart(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .androidx.compose.foundation.background(AccentIndigo)
+                        .background(AccentIndigo)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(text = model.name, fontSize = 11.sp, color = TextSecondary)
@@ -203,7 +204,7 @@ fun RadarSpiderChart(
                     modifier = Modifier
                         .size(8.dp)
                         .clip(CircleShape)
-                        .androidx.compose.foundation.background(SilverRank)
+                        .background(SilverRank)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(text = "Category Average", fontSize = 11.sp, color = TextMuted)
