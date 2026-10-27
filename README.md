@@ -1,7 +1,7 @@
 # PulseAI: Live Model Leaderboard ⚡
 
 [![Latest Release](https://img.shields.io/github/v/release/aucksy/pulse-ai-leaderboard?color=emerald&label=Release)](https://github.com/aucksy/pulse-ai-leaderboard/releases/latest)
-[![Download APK](https://img.shields.io/badge/Download-PulseAI--v1.0.0.apk-10B981?style=flat&logo=android&logoColor=white)](https://github.com/aucksy/pulse-ai-leaderboard/releases/download/v1.0.0/PulseAI-v1.0.0.apk)
+[![Download APK](https://img.shields.io/badge/Download-PulseAI--v1.0.1.apk-10B981?style=flat&logo=android&logoColor=white)](https://github.com/aucksy/pulse-ai-leaderboard/releases/download/v1.0.1/PulseAI-v1.0.1.apk)
 [![Android CI](https://github.com/aucksy/pulse-ai-leaderboard/actions/workflows/android-ci.yml/badge.svg)](https://github.com/aucksy/pulse-ai-leaderboard/actions/workflows/android-ci.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-purple.svg)](https://kotlinlang.org)
@@ -10,7 +10,7 @@
 **PulseAI** is a high-craft, production-grade native Android application engineered to track frontier AI model leaderboards, real-time throughput metrics, competitive pricing, and multi-metric capability benchmarks with zero human configuration required.
 
 > **📱 Install Now:**
-> Download the pre-built APK directly from the [GitHub Releases Page](https://github.com/aucksy/pulse-ai-leaderboard/releases/tag/v1.0.0) or use the direct link: [**PulseAI-v1.0.0.apk**](https://github.com/aucksy/pulse-ai-leaderboard/releases/download/v1.0.0/PulseAI-v1.0.0.apk).
+> Download the pre-built APK directly from the [GitHub Releases Page](https://github.com/aucksy/pulse-ai-leaderboard/releases/tag/v1.0.1) or use the direct link: [**PulseAI-v1.0.1.apk**](https://github.com/aucksy/pulse-ai-leaderboard/releases/download/v1.0.1/PulseAI-v1.0.1.apk).
 
 Designed with a **Dark-First "Bloomberg Terminal meets Linear"** aesthetic (`#090D16` deep obsidian, glassmorphic cards, `#6366F1` electric indigo, `#10B981` emerald, `#F59E0B` amber rank crowns).
 
