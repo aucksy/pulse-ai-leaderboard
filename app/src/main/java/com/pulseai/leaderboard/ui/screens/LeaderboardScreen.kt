@@ -276,9 +276,71 @@ fun LeaderboardScreen(
             onCategorySelected = { viewModel.setCategoryFilter(it) }
         )
 
+        // Active Filter & Count Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${uiState.filteredModels.size} of ${uiState.allModels.size} models",
+                color = TextSecondary,
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace
+            )
+            Text(
+                text = uiState.selectedCategory.displayName,
+                color = AccentIndigo,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
         // Main Content Area
         if (uiState.isLoading && uiState.allModels.isEmpty()) {
             ShimmerSkeletonLoader()
+        } else if (uiState.filteredModels.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = TextMuted,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "No models found",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Try adjusting your search query or category filters",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            viewModel.setSearchQuery("")
+                            viewModel.setCategoryFilter(com.pulseai.leaderboard.domain.model.CategoryFilter.OVERALL)
+                        },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AccentIndigo)
+                    ) {
+                        Text(text = "Reset All Filters", fontSize = 12.sp)
+                    }
+                }
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

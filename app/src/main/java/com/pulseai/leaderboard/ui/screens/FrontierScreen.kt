@@ -314,7 +314,7 @@ fun FrontierScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = sm.name,
+                                text = sm.cleanModelName,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = TextPrimary,
                                 fontWeight = FontWeight.Bold

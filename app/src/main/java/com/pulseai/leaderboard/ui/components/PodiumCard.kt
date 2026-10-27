@@ -196,7 +196,7 @@ private fun PodiumCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = model.name,
+                    text = model.cleanModelName,
                     style = MaterialTheme.typography.titleMedium,
                     color = TextPrimary,
                     maxLines = 1,

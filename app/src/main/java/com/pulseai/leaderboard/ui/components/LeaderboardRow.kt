@@ -151,7 +151,7 @@ fun LeaderboardRowItem(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = model.name,
+                            text = model.cleanModelName,
                             style = MaterialTheme.typography.titleMedium,
                             color = TextPrimary,
                             maxLines = 1,

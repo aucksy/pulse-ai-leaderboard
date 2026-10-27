@@ -148,6 +148,7 @@ class LeaderboardViewModel(
             models
         } else {
             models.filter { model ->
+                model.cleanModelName.lowercase(Locale.ROOT).contains(trimmedQuery) ||
                 model.name.lowercase(Locale.ROOT).contains(trimmedQuery) ||
                 model.id.lowercase(Locale.ROOT).contains(trimmedQuery) ||
                 model.provider.lowercase(Locale.ROOT).contains(trimmedQuery) ||

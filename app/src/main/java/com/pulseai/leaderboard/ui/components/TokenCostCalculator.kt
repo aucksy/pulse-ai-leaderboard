@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -128,6 +129,37 @@ fun TokenCostCalculator(
             Text(text = "1M tokens", color = TextMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
             Text(text = "50M tokens", color = TextMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
             Text(text = "100M tokens", color = TextMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val presets = listOf(1L, 5L, 10L, 25L, 50L, 100L)
+            presets.forEach { millions ->
+                val tokens = millions * 1_000_000L
+                val isSelected = (monthlyVolumeTokens / 1_000_000L) == millions
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (isSelected) AccentIndigo else SurfaceCard)
+                        .border(1.dp, if (isSelected) AccentIndigo else SurfaceCardBorder, RoundedCornerShape(6.dp))
+                        .clickable { onVolumeChange(tokens) }
+                        .padding(vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "${millions}M",
+                        color = if (isSelected) TextPrimary else TextSecondary,
+                        fontSize = 11.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
         }
     }
 }

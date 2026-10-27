@@ -145,7 +145,12 @@ fun PulseAiApp(viewModel: LeaderboardViewModel) {
                     uiState = uiState,
                     sheetState = sheetState,
                     onDismiss = { viewModel.selectModelForDetail(null) },
-                    onVolumeChange = { tokens -> viewModel.setMonthlyVolumeTokens(tokens) }
+                    onVolumeChange = { tokens -> viewModel.setMonthlyVolumeTokens(tokens) },
+                    onCompareClick = { targetModel ->
+                        viewModel.selectCompareModelA(targetModel)
+                        selectedTab = 1
+                        viewModel.selectModelForDetail(null)
+                    }
                 )
             }
         }

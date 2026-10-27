@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,19 +18,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import com.pulseai.leaderboard.domain.model.AiModel
 import com.pulseai.leaderboard.ui.components.ProviderBadge
 import com.pulseai.leaderboard.ui.theme.AccentIndigo
+import com.pulseai.leaderboard.ui.theme.AmberCrown
 import com.pulseai.leaderboard.ui.theme.BgObsidian
 import com.pulseai.leaderboard.ui.theme.EmeraldValue
 import com.pulseai.leaderboard.ui.theme.SurfaceCard
@@ -62,6 +72,7 @@ import com.pulseai.leaderboard.ui.theme.TextSecondary
 import com.pulseai.leaderboard.ui.viewmodel.LeaderboardViewModel
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompareScreen(
     viewModel: LeaderboardViewModel,
@@ -73,8 +84,8 @@ fun CompareScreen(
     val modelA = uiState.compareModelA ?: uiState.filteredModels.firstOrNull()
     val modelB = uiState.compareModelB ?: uiState.filteredModels.getOrNull(1)
 
-    var menuAExpanded by remember { mutableStateOf(false) }
-    var menuBExpanded by remember { mutableStateOf(false) }
+    var pickingForSlot by remember { mutableStateOf<String?>(null) }
+    val pickerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Column(
         modifier = modifier
@@ -98,7 +109,7 @@ fun CompareScreen(
             fontSize = 12.sp
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Model Selector Row with Swap Button
         Row(
@@ -107,28 +118,12 @@ fun CompareScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Model A Selector
-            Box(modifier = Modifier.weight(1f)) {
-                ModelPickerCard(
-                    model = modelA,
-                    title = "MODEL A",
-                    onClick = { menuAExpanded = true }
-                )
-                DropdownMenu(
-                    expanded = menuAExpanded,
-                    onDismissRequest = { menuAExpanded = false },
-                    modifier = Modifier.background(SurfaceCardElevated)
-                ) {
-                    uiState.allModels.forEach { m ->
-                        DropdownMenuItem(
-                            text = { Text(m.name, color = TextPrimary, fontSize = 12.sp) },
-                            onClick = {
-                                viewModel.selectCompareModelA(m)
-                                menuAExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            ModelPickerCard(
+                model = modelA,
+                title = "MODEL A",
+                onClick = { pickingForSlot = "A" },
+                modifier = Modifier.weight(1f)
+            )
 
             // Swap Button
             IconButton(
@@ -148,33 +143,77 @@ fun CompareScreen(
             }
 
             // Model B Selector
-            Box(modifier = Modifier.weight(1f)) {
-                ModelPickerCard(
-                    model = modelB,
-                    title = "MODEL B",
-                    onClick = { menuBExpanded = true }
-                )
-                DropdownMenu(
-                    expanded = menuBExpanded,
-                    onDismissRequest = { menuBExpanded = false },
-                    modifier = Modifier.background(SurfaceCardElevated)
+            ModelPickerCard(
+                model = modelB,
+                title = "MODEL B",
+                onClick = { pickingForSlot = "B" },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (modelA != null && modelB != null) {
+            // Calculate Showdown Winner Tally
+            val metrics = listOf(
+                Pair(modelA.intelligenceScore, modelB.intelligenceScore), // higher
+                Pair(modelA.codingScore, modelB.codingScore),             // higher
+                Pair(modelA.reasoningScore, modelB.reasoningScore),       // higher
+                Pair(modelA.agenticScore, modelB.agenticScore),           // higher
+                Pair(modelA.speedTps, modelB.speedTps),                   // higher
+                Pair(modelA.contextLength.toDouble(), modelB.contextLength.toDouble()), // higher
+                Pair(modelB.promptPricePerMillion, modelA.promptPricePerMillion),       // lower is better
+                Pair(modelB.completionPricePerMillion, modelA.completionPricePerMillion), // lower is better
+                Pair(modelA.valueIndex, modelB.valueIndex)                // higher
+            )
+            val winsA = metrics.count { it.first > it.second }
+            val winsB = metrics.count { it.second > it.first }
+
+            // Showdown Tally Banner
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SurfaceCardElevated)
+                    .border(1.dp, if (winsA != winsB) EmeraldValue.copy(alpha = 0.4f) else SurfaceCardBorder, RoundedCornerShape(12.dp))
+                    .padding(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    uiState.allModels.forEach { m ->
-                        DropdownMenuItem(
-                            text = { Text(m.name, color = TextPrimary, fontSize = 12.sp) },
-                            onClick = {
-                                viewModel.selectCompareModelB(m)
-                                menuBExpanded = false
-                            }
+                    Icon(
+                        imageVector = Icons.Default.EmojiEvents,
+                        contentDescription = null,
+                        tint = if (winsA != winsB) AmberCrown else TextMuted,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        val winnerText = when {
+                            winsA > winsB -> "${modelA.cleanModelName} leads $winsA to $winsB"
+                            winsB > winsA -> "${modelB.cleanModelName} leads $winsB to $winsA"
+                            else -> "Dead Heat ($winsA - $winsB tie)"
+                        }
+                        Text(
+                            text = winnerText,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Text(
+                            text = "Evaluated across 9 intelligence, speed, and cost metrics",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                            fontSize = 11.sp
                         )
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (modelA != null && modelB != null) {
             // Metrics Battle Section
             ComparisonMetricDualBar(
                 metricName = "OVERALL INTELLIGENCE",
@@ -186,7 +225,7 @@ fun CompareScreen(
                 maxScale = 100.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "CODING KINGS BENCHMARK",
@@ -198,7 +237,7 @@ fun CompareScreen(
                 maxScale = 100.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "REASONING & SYSTEM-2",
@@ -210,7 +249,7 @@ fun CompareScreen(
                 maxScale = 100.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "AGENTIC TOOL MASTERY",
@@ -222,7 +261,7 @@ fun CompareScreen(
                 maxScale = 100.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "SPEED (TOKENS / SEC)",
@@ -234,7 +273,7 @@ fun CompareScreen(
                 maxScale = 220.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "CONTEXT WINDOW (TOKENS)",
@@ -246,7 +285,7 @@ fun CompareScreen(
                 maxScale = 2_000_000.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "PROMPT PRICING ($ / 1M TOKENS)",
@@ -258,7 +297,7 @@ fun CompareScreen(
                 maxScale = 20.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "COMPLETION PRICING ($ / 1M TOKENS)",
@@ -270,7 +309,7 @@ fun CompareScreen(
                 maxScale = 80.0
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             ComparisonMetricDualBar(
                 metricName = "VALUE INDEX (PERF / DOLLAR)",
@@ -280,6 +319,23 @@ fun CompareScreen(
                 formattedB = String.format(Locale.US, "%.1f", modelB.valueIndex),
                 higherIsBetter = true,
                 maxScale = 150.0
+            )
+        }
+
+        // Searchable Model Picker Bottom Sheet
+        if (pickingForSlot != null) {
+            SearchableModelPickerSheet(
+                slotTitle = if (pickingForSlot == "A") "Select Model A" else "Select Model B",
+                models = uiState.allModels,
+                onDismiss = { pickingForSlot = null },
+                onSelectModel = { selected ->
+                    if (pickingForSlot == "A") {
+                        viewModel.selectCompareModelA(selected)
+                    } else {
+                        viewModel.selectCompareModelB(selected)
+                    }
+                    pickingForSlot = null
+                }
             )
         }
     }
@@ -324,7 +380,7 @@ private fun ModelPickerCard(
             Spacer(modifier = Modifier.height(4.dp))
             if (model != null) {
                 Text(
-                    text = model.name,
+                    text = model.cleanModelName,
                     style = MaterialTheme.typography.titleMedium,
                     color = TextPrimary,
                     maxLines = 1,
@@ -345,6 +401,129 @@ private fun ModelPickerCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchableModelPickerSheet(
+    slotTitle: String,
+    models: List<AiModel>,
+    onDismiss: () -> Unit,
+    onSelectModel: (AiModel) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filtered = remember(models, searchQuery) {
+        if (searchQuery.isBlank()) models
+        else {
+            val q = searchQuery.trim().lowercase(Locale.ROOT)
+            models.filter {
+                it.cleanModelName.lowercase(Locale.ROOT).contains(q) ||
+                it.name.lowercase(Locale.ROOT).contains(q) ||
+                it.provider.lowercase(Locale.ROOT).contains(q)
+            }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceCard,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .size(width = 36.dp, height = 4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(SurfaceCardBorder)
+            )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = slotTitle,
+                style = MaterialTheme.typography.titleLarge,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Search Bar
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search by model name or provider...", color = TextMuted, fontSize = 12.sp) },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = TextMuted, modifier = Modifier.size(18.dp))
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear", tint = TextMuted, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = SurfaceCardElevated,
+                    unfocusedContainerColor = SurfaceCardElevated,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    cursorColor = AccentIndigo,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .border(1.dp, SurfaceCardBorder, RoundedCornerShape(12.dp))
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // List of models
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(340.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                items(filtered, key = { it.id }) { m ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(SurfaceCardElevated)
+                            .clickable { onSelectModel(m) }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ProviderBadge(provider = m.provider)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = m.cleanModelName,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${m.provider} • Score: ${String.format(Locale.US, "%.1f", m.intelligenceScore)} • ${m.formattedPromptPrice}",
+                                color = TextMuted,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun ComparisonMetricDualBar(
     metricName: String,
@@ -358,7 +537,6 @@ private fun ComparisonMetricDualBar(
 ) {
     val isAWinner = if (higherIsBetter) valueA > valueB else valueA < valueB
     val isBWinner = if (higherIsBetter) valueB > valueA else valueB < valueA
-    val isTie = valueA == valueB
 
     val colorA = if (isAWinner) EmeraldValue else TextSecondary
     val colorB = if (isBWinner) EmeraldValue else TextSecondary
@@ -420,7 +598,7 @@ private fun ComparisonMetricDualBar(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Dual Bars meeting in center or opposing
+            // Dual Bars meeting in center
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),

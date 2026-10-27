@@ -22,6 +22,9 @@ data class AiModel(
     val supportsVision: Boolean,
     val isFlagship: Boolean
 ) {
+    val cleanModelName: String
+        get() = formatCleanModelName(name, id, provider)
+
     val avgPricePerMillion: Double
         get() = (promptPricePerMillion + completionPricePerMillion) / 2.0
 
@@ -50,4 +53,56 @@ data class AiModel(
 
     val overallScore: Double
         get() = intelligenceScore
+
+    companion object {
+        fun formatCleanModelName(rawName: String, id: String, provider: String): String {
+            var clean = rawName.trim()
+
+            // 1. Strip provider colon prefix (e.g. "OpenAI: GPT-4o" -> "GPT-4o", "Anthropic: Claude 3.5 Sonnet" -> "Claude 3.5 Sonnet")
+            if (clean.contains(":")) {
+                val afterColon = clean.substringAfter(":").trim()
+                if (afterColon.isNotBlank()) {
+                    clean = afterColon
+                }
+            }
+
+            // 2. Strip slug prefix if name is raw path (e.g. "openai/gpt-4o" -> "gpt-4o")
+            if (clean.contains("/")) {
+                val afterSlash = clean.substringAfterLast("/").trim()
+                if (afterSlash.isNotBlank()) {
+                    clean = afterSlash
+                }
+            }
+
+            // 3. Clean common trailing clutter flags from OpenRouter catalog
+            clean = clean.replace(Regex("(?i)\\s*\\(free\\)"), "")
+            clean = clean.replace(Regex("(?i):free"), "")
+            clean = clean.replace(Regex("(?i):beta"), "")
+            clean = clean.replace(Regex("(?i)\\s*\\(self-moderated\\)"), "")
+            clean = clean.replace(Regex("(?i)\\s*\\(nitro\\)"), "")
+            clean = clean.trim()
+
+            // 4. If name is slugified with hyphens (e.g. "gpt-4o-mini"), prettify into title words
+            if (clean.contains("-") && !clean.contains(" ")) {
+                clean = clean.split("-").joinToString(" ") { word ->
+                    when (word.lowercase(Locale.ROOT)) {
+                        "gpt" -> "GPT"
+                        "ai" -> "AI"
+                        "moe" -> "MoE"
+                        "it" -> "IT"
+                        "fp8" -> "FP8"
+                        "bf16" -> "BF16"
+                        "r1" -> "R1"
+                        "v3" -> "V3"
+                        "v4" -> "V4"
+                        "o1" -> "o1"
+                        "o3" -> "o3"
+                        else -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                    }
+                }
+            }
+
+            return clean.ifBlank { rawName }
+        }
+    }
 }
