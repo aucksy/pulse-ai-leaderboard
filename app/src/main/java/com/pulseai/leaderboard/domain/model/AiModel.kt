@@ -82,8 +82,8 @@ data class AiModel(
             clean = clean.replace(Regex("(?i)\\s*\\(nitro\\)"), "")
             clean = clean.trim()
 
-            // 4. If name is slugified with hyphens (e.g. "gpt-4o-mini"), prettify into title words
-            if (clean.contains("-") && !clean.contains(" ")) {
+            // 4. If name is a raw lowercase slug with hyphens (e.g. "llama-3.3-70b-instruct"), prettify into title words
+            if (clean.contains("-") && !clean.contains(" ") && clean == clean.lowercase(Locale.ROOT)) {
                 clean = clean.split("-").joinToString(" ") { word ->
                     when (word.lowercase(Locale.ROOT)) {
                         "gpt" -> "GPT"
@@ -97,7 +97,11 @@ data class AiModel(
                         "v4" -> "V4"
                         "o1" -> "o1"
                         "o3" -> "o3"
-                        else -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                        "deepseek" -> "DeepSeek"
+                        else -> {
+                            if (word.matches(Regex("\\d+b"))) word.uppercase(Locale.ROOT)
+                            else word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                        }
                     }
                 }
             }
