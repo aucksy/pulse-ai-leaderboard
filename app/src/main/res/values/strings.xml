@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PulseAI</string>
+    <string name="tab_leaderboard">Leaderboard</string>
+    <string name="tab_compare">Compare</string>
+    <string name="tab_frontier">Frontier</string>
+    <string name="search_placeholder">Search models or providers…</string>
+</resources>
