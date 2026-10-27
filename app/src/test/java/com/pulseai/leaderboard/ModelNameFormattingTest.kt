@@ -49,7 +49,7 @@ class ModelNameFormattingTest {
             AiModel.formatCleanModelName("deepseek/deepseek-r1", "deepseek/deepseek-r1", "DeepSeek")
         )
         assertEquals(
-            "Llama 3.3 70b Instruct",
+            "Llama 3.3 70B Instruct",
             AiModel.formatCleanModelName("meta-llama/llama-3.3-70b-instruct", "meta-llama/llama-3.3-70b-instruct", "Meta")
         )
     }
